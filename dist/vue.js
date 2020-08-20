@@ -5072,13 +5072,18 @@
     ) {
       warn('Vue is a constructor and should be called with the `new` keyword');
     }
+    // 调用_init方法
     this._init(options);
   }
-
+  // 注册vm 的_init方法 初始化vm
   initMixin(Vue);
+  // 注册vm的$data/$props/$set/$delete/$watch
   stateMixin(Vue);
+  // 初始化事件相关方法 $on/$once/$off/$emit
   eventsMixin(Vue);
+  // 初始化生命周期相关的混入方法 _update/$forceUpdate/$destroy
   lifecycleMixin(Vue);
+  // 混入 render  $nextTick/_render
   renderMixin(Vue);
 
   /*  */
@@ -5422,7 +5427,8 @@
     initAssetRegisters(Vue);
   }
 
-  initGlobalAPI(Vue);
+  // 注册vue的静态属性 、方法
+  initGlobalAPI(Vue); 
 
   Object.defineProperty(Vue.prototype, '$isServer', {
     get: isServerRendering
@@ -11889,6 +11895,7 @@
     el = el && query(el);
 
     /* istanbul ignore if */
+    // el不能是body 或者 HTML
     if (el === document.body || el === document.documentElement) {
        warn(
         "Do not mount Vue to <html> or <body> - mount to normal elements instead."
@@ -11898,6 +11905,7 @@
 
     var options = this.$options;
     // resolve template/el and convert to render function
+    // 把 template/el 转换成render函数
     if (!options.render) {
       var template = options.template;
       if (template) {
@@ -11948,6 +11956,7 @@
         }
       }
     }
+    // 调用mount方法 挂载DOM
     return mount.call(this, el, hydrating)
   };
 
@@ -11970,3 +11979,4 @@
   return Vue;
 
 })));
+//# sourceMappingURL=vue.js.map

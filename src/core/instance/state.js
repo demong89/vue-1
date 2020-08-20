@@ -50,6 +50,7 @@ export function initState (vm: Component) {
   const opts = vm.$options
   if (opts.props) initProps(vm, opts.props)
   if (opts.methods) initMethods(vm, opts.methods)
+  // 数据的初始化
   if (opts.data) {
     initData(vm)
   } else {
@@ -111,6 +112,7 @@ function initProps (vm: Component, propsOptions: Object) {
 
 function initData (vm: Component) {
   let data = vm.$options.data
+  // 初始化_data 组件中data是函数，调用函数返回结果 否则直接返回data
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {}
@@ -123,10 +125,13 @@ function initData (vm: Component) {
     )
   }
   // proxy data on instance
+  // 获取data中的所有属性
   const keys = Object.keys(data)
+  // 获取props / methods
   const props = vm.$options.props
   const methods = vm.$options.methods
   let i = keys.length
+  // 判断data上的成员是否和 props、methods重名
   while (i--) {
     const key = keys[i]
     if (process.env.NODE_ENV !== 'production') {
@@ -147,7 +152,7 @@ function initData (vm: Component) {
       proxy(vm, `_data`, key)
     }
   }
-  // observe data
+  // observe data 数据的响应式处理
   observe(data, true /* asRootData */)
 }
 
