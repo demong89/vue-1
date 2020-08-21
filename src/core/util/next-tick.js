@@ -86,9 +86,11 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
 
 export function nextTick (cb?: Function, ctx?: Object) {
   let _resolve
+  // 把cb 加上异常处理存入 callbacks 数组中
   callbacks.push(() => {
     if (cb) {
       try {
+        // 调用cb()
         cb.call(ctx)
       } catch (e) {
         handleError(e, ctx, 'nextTick')
@@ -103,6 +105,7 @@ export function nextTick (cb?: Function, ctx?: Object) {
   }
   // $flow-disable-line
   if (!cb && typeof Promise !== 'undefined') {
+    // 返回 promise对象
     return new Promise(resolve => {
       _resolve = resolve
     })

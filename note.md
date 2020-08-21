@@ -200,12 +200,96 @@ const vm = new Vue({ el: '#app', template: '<h3>Hello template</h3>', render (h)
     - 处理数据修改数据的方法
         - src\core\observer\array.js
 #### Dep类
++ src\core\observer\dep.js
++ 依赖对象
++ 记录watcher对象
++ depend() -- watcher记录对应的dep
++ 发布通知
 #### watcher类
++ watcher分三种 Computed Watcher、用户Watcher（侦听器） 、渲染Watcher
++ 渲染watcher的创建时机
+    - /src/core/instance/lifecycle.js
++ 渲染watcher创建的位置lifecycle.js的mountComponent函数中
++ Watcher的构造函数初始化，处理expOrFn(渲染watcher和侦听器处理不同)
++ 调用this.get() 它里面调用pushTarget() 然后this.getter.call(vm,vm)(对于渲染watcher调用updateComponent)，如果是用户watcher会获取属性的值（触发get操作）
++ 当数据更新时，dep中调用notify()方法，notify()中调用watcher的update()方法
++ update()中调用queueWatcher()
++ queueWatcher()是一个核心方法 去除重复操作 调用flushSchedulerQueue()刷新队列并执行watcher
++ flushSchedulerQueue()中对watcher排序，遍历所有watcher， 如果有before，触发生命周期的钩子函数beforeUpdate，执行watcher.run(),它内部调用this.get() 然后调用this.cb()(渲染watcher的cb是noop)
++ 整个流程结束
+
 
 ## 实例方法/数据
-## 异步更新队列
+
+#### vm.$set
++ 功能  
+向响应式对象中添加一个属性，并确保这个新属性同样是响应式的，且触发视图更新。它必须用于响应式对象上添加新属性，因为vue无法探测普通的新增属性（如 this.myObject.newProperty='hi'）
+注意：对象不能是vue实例，或者vue实例的跟数据对象
++ 位置 Vue.set()  global-api/index.js
++ vm.$set() instance/index.js
++ set() 方法 observer/index.js
+#### vm.$delete
++ 功能 
+删除对象的属性，如果对象是响应式的，确保删除能触发更新视图。这个方法主要用于避开vue不能检测到属性被删除的限制，
++ 注意：目标对象不能是一个vue实例或vue实例的根数据对象。
++ 定义位置 Vue.delete() global-api/index.js
++ vm.$delete() instance/index.js
++ 源码 src\core\observer\index.js
+#### vm.$watch(expOrFn,callback,[options])
++ 功能 
+观察vue实例变化的一个表达式或计算属性函数。回调函数得到的参数为新值和旧值。表达式只接受监督的键路径。对于更复杂的表达式，用一个函数取代。
++ 参数
+    - expOrFn 要监视的$data中的属性，可以是表达式或函数
+    - callback 数据变化后执行的函数
+        - 函数 回调函数
+        - 对象 具有handler属性（字符串或者函数），如果该属性为字符串则methods中相应的定义
+    - options
+        - deep 布尔型 深度监听
+        - immediate 布尔型 是否立即执行一次回调函数
+
+## 三种类型的watcher对象
++ 没有静态方法，因为$watch方法中要使用vue的实例
++ Watcher分三种：计算属性watcher、用户watcher（侦听器）、渲染watcher
++ 创建顺序： 计算属性watcher、用户watcher（侦听器）、渲染watcher
++ vm.$watcher()  src\core\instance\state.js
+
+## 异步更新队列 - nextTick()
++ vue更新DOM是异步执行的，批量的
+    - 在下次DOM更新循环结束之后执行延迟回调，在修改数据之后立即使用这个方法，获取更新后的DOM
++ vm.$nextTick(function(){ /*操作DOM*/}) / Vue.nextTick(function(){})
++ 定义位置 src\core\instance\render.js
++ 源码
+    - 手动调用vm.$nextTick()
+    - 在watcher的queueWatcher中执行nextTick()
+    - src\core\util\next-tick.js
 
 ## 虚拟DOM
-
+#### 什么是虚拟DOM
+VDOM是使用JS对象来描述DOM，VDOM的本质就是JS对象，使用JS对象来描述DOM的结构。应用的各种状态变化首先作用于VDOM，最终映射到DOM。vue中VDOM借鉴了Snabbdom,并添加了一些vue中的特性，如指令和组件机制
+Vue 1.x 中细粒度监测数据的变化，每一个属性对应一个 watcher，开销太大Vue 2.x 中每个组件对应一
+个 watcher，状态变化通知到组件，再引入虚拟 DOM 进行比对和渲染
+#### 为什么用虚拟DOM
++ 使用虚拟 DOM，可以避免用户直接操作 DOM，开发过程关注在业务代码的实现，不需要关注如何操作 DOM，从而提高开发效率
++ 作为一个中间层可以跨平台，除了 Web 平台外，还支持 SSR、Weex。
++ 关于性能方面，在首次渲染的时候肯定不如直接操作 DOM，因为要维护一层额外的虚拟 DOM，如果后续有频繁操作 DOM 的操作，这个时候可能会有性能的提升，虚拟 DOM 在更新真实 DOM之前会通过 Diff 算法对比新旧两个虚拟 DOM 树的差异，最终把差异更新到真实 DOM
+#### vue中的虚拟DOM
++ render中的h函数 -- createElement()
++ 虚拟DOM创建过程
+    - vm._init()
+    - vm.$mount()
+    - mountComponent()
+    - 创建watcher对象
+    - updateComponent()
+    - vm._render()
+        - vnode - render.call(vm._renderProxy,vm.$createElement)
+        - vm.$createElement
+            - h函数，用户设置的render函数中调用
+            - createElement(vm,a,b,c,d,true)
+        - vm._c()
+            - h函数 模板编译的render函数中调用
+            - createElement(vm,a,b,c,d,true)
+        - _createElement()
+            - 
+            - vm._render()结束，返回vnode
 
 ## 模板编译和组件化

@@ -7,12 +7,15 @@ import config from '../config'
 let uid = 0
 
 /**
- * A dep is an observable that can have multiple
+ * A dep is an observable that can have multiple dep是个可观察对象 可以有多个指令订阅它 
  * directives subscribing to it.
  */
 export default class Dep {
+  // 静态属性 watcher对象
   static target: ?Watcher;
+  // dep实例 id
   id: number;
+  dep实例对应的watcher对象/订阅者数组
   subs: Array<Watcher>;
 
   constructor () {
@@ -20,20 +23,22 @@ export default class Dep {
     this.subs = []
   }
 
+  // 添加新的订阅者 watcher对象
   addSub (sub: Watcher) {
     this.subs.push(sub)
   }
-
+// 移除订阅者
   removeSub (sub: Watcher) {
     remove(this.subs, sub)
   }
-
+// 将观察对象和watcher建立依赖
   depend () {
     if (Dep.target) {
+      // 如果target存在  把dep对象添加到watcher的依赖中
       Dep.target.addDep(this)
     }
   }
-
+// 发布通知
   notify () {
     // stabilize the subscriber list first
     const subs = this.subs.slice()
@@ -43,6 +48,7 @@ export default class Dep {
       // order
       subs.sort((a, b) => a.id - b.id)
     }
+    // 调用每个订阅者的update方法实现更新
     for (let i = 0, l = subs.length; i < l; i++) {
       subs[i].update()
     }
@@ -52,15 +58,17 @@ export default class Dep {
 // The current target watcher being evaluated.
 // This is globally unique because only one watcher
 // can be evaluated at a time.
+// Dep.target用来存放目前正在使用的watcher  全局唯一，并且一次也只能有一个watcher被使用
 Dep.target = null
 const targetStack = []
 
 export function pushTarget (target: ?Watcher) {
+  // 入栈并将当前watcher赋值给Dep.target
   targetStack.push(target)
   Dep.target = target
 }
 
 export function popTarget () {
-  targetStack.pop()
+  targetStack.pop() //出栈
   Dep.target = targetStack[targetStack.length - 1]
 }
