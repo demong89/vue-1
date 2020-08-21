@@ -289,7 +289,35 @@ Vue 1.x 中细粒度监测数据的变化，每一个属性对应一个 watcher�
             - h函数 模板编译的render函数中调用
             - createElement(vm,a,b,c,d,true)
         - _createElement()
-            - 
+            - vnode = new VNode(config,parsePlatformTagName(tag),data,children,undefined,undefined,context)
             - vm._render()结束，返回vnode
+        - vm._update()
+            - 负责把VDOM渲染成真实DOM
+            - 首次执行
+                - vm.__patch__(vm.$el,vnode,hydrating,false)
+            - 数据更新
+                - vm.__patch__(preVnode,vnode)
+        - vm.__patch__()
+            - runtime/index.js中挂载vue.prototype.__patch__
+            - runtime/patch.js的patch函数
+            - 设置modules和nodeOps
+            - 调用createPatchFunction()函数返回patch函数
+        - patch()
+            - vdom/patch.js中的creatPatchFunction返回patch函数
+            - 挂载cbs节点的属性/事件/样式操作的钩子函数
+            - 判断第一个参数是真实DOM还是VDOM 首次加载，第一个参数就是真实DOM 转换成VNode 调用createElm
+            - 如果是数据更新的时候，新旧节点是sameVnode执行patchVnode，就是diff
+            - 删除旧节点
+        - createElm(vnode,insertedVnodeQueue)
+            - 把VDOM转为真实DOM 并插入到DOM树
+            - 把虚拟节点的children，转为真实DOM 并插入到DOM树
+        - patchVnode
+            - 对比新旧VNode以及新旧VNode的子节点更新差别
+            - 如果新旧VNode都有子节点并且子节点不同的话 调用updateChildren对比新旧子节点的差异
+        - updateChildren
+            - 从头和尾开始依次找到相同的子节点进行比较patchVnode，共有4种比较方式
+            - 在老节点的子节点中查找newStartVnode 并进行处理
+            - 如果新节点比老节点多，把新增的子节点插入到DOM中
+            - 如果老节点比新节点多，把多余的老节点删除
 
 ## 模板编译和组件化
