@@ -319,5 +319,27 @@ Vue 1.x 中细粒度监测数据的变化，每一个属性对应一个 watcher�
             - 在老节点的子节点中查找newStartVnode 并进行处理
             - 如果新节点比老节点多，把新增的子节点插入到DOM中
             - 如果老节点比新节点多，把多余的老节点删除
+#### createElement
++ 功能 用来创建Vnode ，render函数中的参数h ，就是createElement
++ 定义
+    - 在vm._render()中调用了，用户传递的或者编译生成的render函数，这个时候传递了createElement
+    - src/core/instance/render.js
+    vm.c和vm.$createElement内部都调用了createElement，不同的是最后一个参数。vm.c在编译生成的render函数内部会调用。vm.$createElement在用户传入的render函数内部调用。当用户传入render函数的时候，需要对用户传入的参数做处理
+    - src/core/vdom/create-element.js
+    在执行完createElement之后创建好了VNode，把创建好的VNode传递给vm._update()继续处理
+#### update
++ 功能 内部调用vm.__patch__()把VDOM转换为真实DOM
++ 定义 src/core/instance/lifecycle.js
+#### patch函数初始化
++ 功能 对比两个VNode的差异，把差异更新到真实DOM。如果是首次渲染的话，会把真实DOM先转换成VNode
++ snabbdom中patch函数的初始化
+    - src/snabbdom.ts
+    - vnode函数
++ vue中patch函数的初始化
+    - src/platforms/web/runtime/index.js
+    - src/platforms/web/runtime/patch.js
+    - src/core/vdom/patch.js
+        - createElm() 把 VNode 转换成真实 DOM，插入到 DOM 树上
+        - patchVnode()
 
 ## 模板编译和组件化

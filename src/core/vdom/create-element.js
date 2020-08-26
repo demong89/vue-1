@@ -33,6 +33,7 @@ export function createElement (
   normalizationType: any,
   alwaysNormalize: boolean
 ): VNode | Array<VNode> {
+  // 判断第三个参数 如果data是数组或者原始值的话 就是children  实现类似函数重载的机制
   if (Array.isArray(data) || isPrimitive(data)) {
     normalizationType = children
     children = data
@@ -87,15 +88,26 @@ export function _createElement (
     data.scopedSlots = { default: children[0] }
     children.length = 0
   }
+  // 去处理children
   if (normalizationType === ALWAYS_NORMALIZE) {
+    // 当手写render函数的时候调用
+    // 判断children的类型 如果是原始值的话转换成VNode的数组
+    // 如果是数组的话  继续处理数组中的元素
+    // 如果数组中的子元素又是数组（slot template） 递归处理
+    // 如果连续两个节点都是字符串 会合并文本节点
     children = normalizeChildren(children)
   } else if (normalizationType === SIMPLE_NORMALIZE) {
+    // 把二维数组转换为一维数组
+    // 如果children中有函数组件的话 函数组件会返回数组形式
+    // 这时候 children就是一个二维数组,只需要把二维转为一维
     children = simpleNormalizeChildren(children)
   }
   let vnode, ns
+  // 判断tag是字符串还是组件
   if (typeof tag === 'string') {
     let Ctor
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag)
+    // 如果是浏览器的保留标签 创建对应的VNode
     if (config.isReservedTag(tag)) {
       // platform built-in elements
       if (process.env.NODE_ENV !== 'production' && isDef(data) && isDef(data.nativeOn)) {
@@ -110,6 +122,7 @@ export function _createElement (
       )
     } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
       // component
+      // 否则的话 创建组件
       vnode = createComponent(Ctor, data, context, children, tag)
     } else {
       // unknown or unlisted namespaced elements
