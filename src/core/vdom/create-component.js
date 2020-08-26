@@ -44,10 +44,12 @@ const componentVNodeHooks = {
       const mountedNode: any = vnode // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
+      // 创建组件实例挂载到vnode.componentInstance
       const child = vnode.componentInstance = createComponentInstanceForVnode(
         vnode,
         activeInstance
       )
+      // 调用组件对象的$mount()  把组件挂载到页面
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
   },
@@ -181,12 +183,15 @@ export function createComponent (
       data.slot = slot
     }
   }
-
+  
   // install component management hooks onto the placeholder node
+  // 安装组件的钩子函数 init prepatch insert destroy
+  // 初始化了组件的data.hooks中的钩子函数
   installComponentHooks(data)
 
   // return a placeholder vnode
   const name = Ctor.options.name || tag
+  // 创建自定义组件的vnode 设置自定义组件的名字 记录this.componentOptions = componentOptions
   const vnode = new VNode(
     `vue-component-${Ctor.cid}${name ? `-${name}` : ''}`,
     data, undefined, undefined, undefined, context,
@@ -220,11 +225,14 @@ export function createComponentInstanceForVnode (
     options.render = inlineTemplate.render
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
+  // 创建组件实例
   return new vnode.componentOptions.Ctor(options)
 }
 
 function installComponentHooks (data: VNodeData) {
   const hooks = data.hook || (data.hook = {})
+  // 用户可以传递自定义钩子函数
+  // 把用户自定义钩子函数和componentvnodeHooks中预定义的钩子函数合并
   for (let i = 0; i < hooksToMerge.length; i++) {
     const key = hooksToMerge[i]
     const existing = hooks[key]

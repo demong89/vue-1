@@ -194,7 +194,8 @@ function createPatchFunction(backend) {
       vnode.elm = nodeOps.createTextNode(vnode.text);
       insert(parentElm, vnode.elm, refElm);
     }
-  }
+  } // 创建组件实例，挂载到真实 DOM
+
 
   function createComponent(vnode, insertedVnodeQueue, parentElm, refElm) {
     var i = vnode.data;
@@ -203,6 +204,8 @@ function createPatchFunction(backend) {
       var isReactivated = (0, _index.isDef)(vnode.componentInstance) && i.keepAlive;
 
       if ((0, _index.isDef)(i = i.hook) && (0, _index.isDef)(i = i.init)) {
+        // 调用init()方法 创建和挂载组件实例
+        // init()的过程中创建好了组件的真实DOM 挂载到了vnode.elm上
         i(vnode, false
         /* hydrating */
         );
@@ -213,7 +216,9 @@ function createPatchFunction(backend) {
 
 
       if ((0, _index.isDef)(vnode.componentInstance)) {
-        initComponent(vnode, insertedVnodeQueue);
+        // 调用钩子函数（VNode的钩子函数初始化属性/事件/样式等，组件的钩子函数）
+        initComponent(vnode, insertedVnodeQueue); // 把组件对应的 DOM 插入到父元素中
+
         insert(parentElm, vnode.elm, refElm);
 
         if ((0, _index.isTrue)(isReactivated)) {
@@ -234,7 +239,9 @@ function createPatchFunction(backend) {
     vnode.elm = vnode.componentInstance.$el;
 
     if (isPatchable(vnode)) {
-      invokeCreateHooks(vnode, insertedVnodeQueue);
+      // 调用钩子函数
+      invokeCreateHooks(vnode, insertedVnodeQueue); // 设置局部作用域样式
+
       setScope(vnode);
     } else {
       // empty component root.
@@ -303,14 +310,17 @@ function createPatchFunction(backend) {
     }
 
     return (0, _index.isDef)(vnode.tag);
-  }
+  } // 调用钩子函数
+
 
   function invokeCreateHooks(vnode, insertedVnodeQueue) {
+    // 调用 VNode 的钩子函数，初始化属性/样式/事件等
     for (var _i2 = 0; _i2 < cbs.create.length; ++_i2) {
       cbs.create[_i2](emptyNode, vnode);
     }
 
     i = vnode.data.hook; // Reuse variable
+    // / 调用组件的钩子函数
 
     if ((0, _index.isDef)(i)) {
       if ((0, _index.isDef)(i.create)) i.create(emptyNode, vnode);

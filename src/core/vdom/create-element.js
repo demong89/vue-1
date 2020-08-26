@@ -121,8 +121,8 @@ export function _createElement (
         undefined, undefined, context
       )
     } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
-      // component
-      // 否则的话 创建组件
+      // component 
+      // 否则的话 创建组件 查找自定义组件构造函数的声明 根据Ctor创建组件的vnode
       vnode = createComponent(Ctor, data, context, children, tag)
     } else {
       // unknown or unlisted namespaced elements

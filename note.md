@@ -343,3 +343,69 @@ Vue 1.x 中细粒度监测数据的变化，每一个属性对应一个 watcher�
         - patchVnode()
 
 ## 模板编译和组件化
++ 模板编译的主要目的是将模板(template)转换成渲染函数(render)
++ 模板编译的作用
+    - vue2.x使用vnode描述视图以及各种交互，用户自己编写vnode比较复杂
+    - 用户只需要编写类似HTML的代码 -vue模板，通过编译器将模板转换为返回vnode的render函数
+    - .vue文件会被webpack在构建过程中转换为render函数
++ 把 template 转换成 render 的入口  src\platforms\web\entry-runtime-with-compiler.js
+#### Vue Template Explorer
++ Vue 2.6 把模板编译成 render 函数的工具
+    -  [编译render 函数](https://template-explorer.vuejs.org/#%3Cdiv%20id%3D%22app%22%3E%0A%20%20%3Cselect%3E%0A%20%20%20%20%3Coption%3E%0A%20%20%20%20%20%20%7B%7B%20msg%20%20%7D%7D%0A%20%20%20%20%3C%2Foption%3E%0A%20%20%3C%2Fselect%3E%0A%20%20%3Cdiv%3E%0A%20%20%20%20hello%0A%20%20%3C%2Fdiv%3E%0A%3C%2Fdiv%3E)
++ Vue 3.0 beta 把模板编译成 render 函数的工具
+    -  [编译render 函数](https://vue-next-template-explorer.netlify.app/#%7B%22src%22%3A%22%3Cdiv%20id%3D%5C%22app%5C%22%3E%5Cn%20%20%3Cselect%3E%5Cn%20%20%20%20%3Coption%3E%5Cn%20%20%20%20%20%20%7B%7B%20msg%20%20%7D%7D%5Cn%20%20%20%20%3C%2Foption%3E%5Cn%20%20%3C%2Fselect%3E%5Cn%20%20%3Cdiv%3E%5Cn%20%20%20%20hello%5Cn%20%20%3C%2Fdiv%3E%5Cn%3C%2Fdiv%3E%22%2C%22options%22%3A%7B%22mode%22%3A%22module%22%2C%22prefixIdentifiers%22%3Afalse%2C%22optimizeBindings%22%3Afalse%2C%22hoistStatic%22%3Afalse%2C%22cacheHandlers%22%3Afalse%2C%22scopeId%22%3Anull%7D%7D)
+
+#### 模板编译过程
+解析---优化---生成
++ 编译的入口
+    - src\platforms\web\entry-runtime-with-compiler.js
+    - 调试 compileToFunctions() 执行过程，生成渲染函数的过程
+        - compileToFunctions: src\compiler\to-function.js
+        - complie(template, options)：src\compiler\create-compiler.js
+        - baseCompile(template.trim(), finalOptions)：src\compiler\index.js
+###### 解析 parse
++ 解析器将模板解析为AST ，只有将模板解析成AST之后，才能基于它做优化或者生成代码字符串
+    - src\compiler\index.js
++ 查看得到的 AST tree [astexplorer](https://astexplorer.net/#/gist/30f2bd28c9bbe0d37c2408e87cabdfcc/1cd0d49beed22d3fc8e2ade0177bb22bbe4b907c)
++ 结构化指令的处理
+    - v-if 最终生成单元表达式
+    - v-if/v-for 结构化指令只能在编译阶段处理，如果我们要在 render 函数处理条件或循环只能使用js 中的 if 和 for
+
+###### 优化 optimize
++ 优化AST ， 检测子节点种是否是纯静态节点
++ 一旦检测到纯静态节点（永远不会改变的节点）
+    - 提升为常量，重新渲染的时候不在重新创建节点
+    - 在patch的时候直接跳过静态子树
+###### 生成
++ src\compiler\codegen\index.js generate()
+
+## 组件化机制
++ 组件化可以让我们方便的把页面拆分成多个可重用的组件
++ 组价是独立的，系统内可重用，组件之间可以嵌套
++ 有了组件可以像搭积木一样开发网页
++ vue内部组件的工作
+    - 组件实例的创建过程是从上而下
+    - 组件实例的挂载过程是从下而上
+#### 组件声明
++ 全局组件的定义
++ Vue.component() 入口
+    - 创建组件的构造函数，挂载到 Vue 实例的 vm.options.component.componentName = Ctor
+        - src\core\global-api\index.js 
+        ` initAssetRegisters(Vue) // 注册 vue.directive() vue.component() vue.filter()`
+        - src\core\global-api\assets.js
+    - 组件构造函数的创建
+#### 组件创建和挂载
++ 组件vnode的创建过程
+    - 创建根组件，首次_render()时，会得到整个树的vnode结构
+    - 整体流程 new Vue()  $mount  vm._render() createElement() createComponent()
+    - 创建组件的vnode 初始化组件的hook钩子函数
+        - 1. _createElement() 中调用 createComponent()   src\core\vdom\create-element.js
+        - 2. createComponent() 中调用创建自定义组件对应的 VNode  src\core\vdom\create-component.js
+        - 3. installComponentHooks() 初始化组件的 data.hook  src\core\vdom\create-component.js
+        - 4. 钩子函数定义的位置（init()钩子中创建组件的实例） src\core\vdom\create-component.js
+        - 5. 创建组件实例的位置，由自定义组件的 init() 钩子方法调用 src\core\vdom\create-component.js
+#### 组件实例的创建和挂载过程
++ Vue._update() --> patch() --> createElm() --> createComponent() src\core\vdom\patch.js 
+    - 1. 创建组件实例，挂载到真实DOM   createComponent()
+    - 2. 调用钩子函数，设置局部作用于样式 initComponent()
+    - 3. 调用钩子函数 invokeCreateHooks()
