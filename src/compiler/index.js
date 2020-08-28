@@ -12,14 +12,18 @@ export const createCompiler = createCompilerCreator(function baseCompile (
   template: string,
   options: CompilerOptions
 ): CompiledResult {
+  // 把模板转换成AST
+
   const ast = parse(template.trim(), options)
   if (options.optimize !== false) {
+    // 优化AST
     optimize(ast, options)
   }
+  // 将AST转为字符串形式 的代码
   const code = generate(ast, options)
   return {
     ast,
-    render: code.render,
+    render: code.render,// 字符串形式的
     staticRenderFns: code.staticRenderFns
   }
 })

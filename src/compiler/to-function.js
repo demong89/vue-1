@@ -18,6 +18,7 @@ function createFunction (code, errors) {
   }
 }
 
+// 模板编译入口
 export function createCompileToFunctionFn (compile: Function): Function {
   const cache = Object.create(null)
 
@@ -49,6 +50,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // check cache
+    // 读取缓存中的CompiledFunctionResult  如果有直接返回
     const key = options.delimiters
       ? String(options.delimiters) + template
       : template
